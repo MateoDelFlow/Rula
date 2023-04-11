@@ -1,0 +1,161 @@
+#include <stdio.h>
+#include <SDL.h>
+
+#include <iostream>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
+#include <conio.h>
+#include <random>
+#include <windows.h>
+
+
+// Define las dimensiones de la ventana
+const int  WINDOW_WIDTH = 1200;
+const int  WINDOW_HEIGHT = 600;
+
+// Define las dimensiones de la mesa de ruleta
+const int TABLE_WIDTH = 800;
+const int TABLE_HEIGHT = 400;
+const int TABLE_X = (WINDOW_WIDTH - TABLE_WIDTH) / 2; // Centra la mesa de ruleta horizontalmente
+const int TABLE_Y = (WINDOW_HEIGHT - TABLE_HEIGHT) / 2; // Centra la mesa de ruleta verticalmente
+
+// Define los colores utilizados en la mesa de ruleta
+const SDL_Color TABLE_COLOR = { 0, 128, 0, 255 }; // Verde oscuro
+const SDL_Color BORDER_COLOR = { 155, 0, 0, 255 }; // Negro
+const SDL_Color BUTTON_COLOR = { 255, 255, 255, 255 }; // Blanco
+
+// Define las dimensiones y la cantidad de botones en la mesa de ruleta
+const int BUTTON_SIZE = 50;
+const int NUM_BUTTONS = 36;
+
+// Define las posiciones de los botones en la mesa de ruleta
+const int BUTTON_POS_X[NUM_BUTTONS] = { 25, 25, 25, 75, 75, 75, 125, 125, 125, 175, 175, 175, 225, 225, 225, 275, 275, 275, 325, 325, 325, 375, 375, 375, 425, 425, 425, 475, 475, 475, 525, 525, 525, 575, 575, 575 };
+const int BUTTON_POS_Y[NUM_BUTTONS] = { 50, 100, 150, 50, 100, 150, 50, 100, 150, 50, 100, 150, 50, 100, 150, 50, 100, 150, 50, 100, 150, 50, 100, 150, 50, 100, 150, 50, 100, 150, 50, 100, 150, 50, 100, 150 };
+//los X los 3 sgts incrementan 50 // los Y se repite 50, 100 ,150
+
+
+
+
+// Dibuja la mesa de ruleta y los botones
+void drawTable(SDL_Renderer* renderer) {
+    // Dibuja el fondo de la mesa de ruleta
+    SDL_Rect tableRect = { TABLE_X, TABLE_Y, TABLE_WIDTH, TABLE_HEIGHT };
+    SDL_SetRenderDrawColor(renderer, TABLE_COLOR.r, TABLE_COLOR.g, TABLE_COLOR.b, TABLE_COLOR.a);
+    SDL_RenderFillRect(renderer, &tableRect);
+
+    // Dibuja el borde de la mesa de ruleta
+    SDL_Rect borderRect = { TABLE_X, TABLE_Y, TABLE_WIDTH, TABLE_HEIGHT };
+    SDL_SetRenderDrawColor(renderer, BORDER_COLOR.r, BORDER_COLOR.g, BORDER_COLOR.b, BORDER_COLOR.a);
+    SDL_RenderDrawRect(renderer, &borderRect);
+
+    // Dibuja los botones en la mesa de ruleta
+    for (int i = 0; i < NUM_BUTTONS; i++) {
+        // Crea un rectángulo para el botón actual
+        SDL_Rect buttonRect = { TABLE_X + BUTTON_POS_X[i], TABLE_Y + BUTTON_POS_Y[i], BUTTON_SIZE, BUTTON_SIZE };
+
+        // Dibuja el botón
+        SDL_SetRenderDrawColor(renderer, BUTTON_COLOR.r, BUTTON_COLOR.g, BUTTON_COLOR.b, BUTTON_COLOR.a);
+        SDL_RenderFillRect(renderer, &buttonRect);
+
+        // Dibuja el borde del botón
+        SDL_SetRenderDrawColor(renderer, BORDER_COLOR.r, BORDER_COLOR.g, BORDER_COLOR.b, BORDER_COLOR.a);
+        SDL_RenderDrawRect(renderer, &buttonRect);
+    }
+}
+
+
+
+int main(int argc, char* args[]) {
+    SDL_Window* window = NULL;
+    SDL_Renderer* renderer = NULL;
+
+    // Inicializa SDL y crea la ventana y el renderizador
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        printf("SDL no se pudo inicializar. Error: %s\n", SDL_GetError());
+        return -1;
+    }
+    else {
+        window = SDL_CreateWindow("Mi Ventana", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+        
+        if (window == NULL) {
+            printf("La ventana no se pudo crear. Error: %s\n", SDL_GetError());
+            return -1;
+        }
+        else {
+            printf("La ventana  se pudo crear de diez. Error: %s\n", SDL_GetError());
+
+            renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+            if (renderer == NULL) {
+                printf("El renderizador no se pudo crear. Error: %s\n", SDL_GetError());
+                return -1;
+            }
+            else {
+                printf("El renderizador  se pudo crear. Error: %s\n", SDL_GetError());
+                // Dibuja la mesa de ruleta
+                drawTable(renderer);
+
+                // Muestra la ventana y espera hasta que se cierre
+                SDL_RenderPresent(renderer);
+                SDL_Delay(15000);
+                
+            }
+        }
+    }
+    
+    // Variable para almacenar el botón sobre el que se hace clic
+    int botonClic = -1;
+
+    // Bucle de eventos
+    SDL_Event event;
+    bool quit=false;
+    std::vector<SDL_Rect> botones(36);
+    while (SDL_PollEvent(&event))
+    {
+        
+        switch (event.type)
+        {
+        case SDL_QUIT:
+            // Se ha cerrado la ventana, salir del programa
+            quit = true;
+            printf("Case 1", SDL_GetError());
+            break;
+        case SDL_MOUSEBUTTONDOWN:
+            // Se ha hecho clic con el ratón
+            printf("case 2", SDL_GetError());
+            int x, y;
+            SDL_GetMouseState(&x, &y);
+            for (int i = 0; i < 36; i++)
+            {
+                if (x >= botones[i].x && x < botones[i].x + botones[i].w &&
+                    y >= botones[i].y && y < botones[i].y + botones[i].h)
+                {
+                    // Se ha hecho clic en el botón i
+                    botonClic = i;
+                    break;
+                    std::cout << "Se ha hecho clic en el botón " << botonClic << std::endl;
+                }
+            }
+            break;
+            // Aquí puedes manejar otros eventos
+            // ...
+            SDL_RenderPresent(renderer);
+            SDL_Delay(1000);
+        }
+    }
+    
+    // Verifica si se hizo clic en un botón y haz algo en consecuencia
+    if (botonClic != -1)
+    {
+        std::cout << "Se ha hecho clic en el botón " << botonClic << std::endl;
+        // Aquí puedes agregar el código para manejar el clic en el botón
+        // ...
+    }
+
+    // Destruye la ventana y el renderizador y cierra SDL
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+
+    return 0;
+
+}
