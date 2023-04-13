@@ -1,0 +1,67 @@
+#include <stdio.h>
+#include <SDL.h>
+#include <vector>
+#include <iostream>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
+#include <conio.h>
+#include <random>
+#include <windows.h>
+#include "main.h"
+
+int main(int argc, char* argv[]) {
+    SDL_Init(SDL_INIT_VIDEO);
+
+    SDL_Window* window = SDL_CreateWindow("Ruleta",
+        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        640, 480, SDL_WINDOW_SHOWN);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
+
+    // Definir botones
+    std::vector<SDL_Rect> botones(36);
+    for (int i = 0; i < 36; ++i) {
+        botones[i].x = 50 + i % 3 * 100;
+        botones[i].y = 50 + i / 3 * 100;
+        botones[i].w = 50;
+        botones[i].h = 50;
+    }
+
+
+    bool running = true;
+    while (running) {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            switch (event.type) {
+            case SDL_QUIT:
+                running = false;
+                break;
+            case SDL_MOUSEBUTTONDOWN:
+                int x = event.button.x;
+                int y = event.button.y;
+                SDL_Point click_point = { x, y };
+                for (int i = 0; i < 36; ++i) {
+                    if (SDL_PointInRect(&click_point, &botones[i])) {
+                        std::cout << "Se hizo clic en el botón " << i << std::endl;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+
+        // Dibujar botones
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+        for (int i = 0; i < 36; ++i) {
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            SDL_RenderFillRect(renderer, &botones[i]);
+        }
+        SDL_RenderPresent(renderer);
+    }
+
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+
+    return 0;
+}
