@@ -1,0 +1,115 @@
+#include <stdio.h>
+#include <SDL.h>
+#include <vector>
+#include <iostream>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
+#include <conio.h>
+#include <SDL_ttf.h>
+#include <string>       // para utilizar to_string()
+#include <SDL_image.h>
+#include <random>
+#include <windows.h>
+#include "main.h"
+
+int main(int argc, char* argv[]) {
+    SDL_Init(SDL_INIT_VIDEO);
+
+    SDL_Window* window = SDL_CreateWindow("Ruleta",
+        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        1400, 1000, SDL_WINDOW_SHOWN);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
+
+    // Cargar fuente
+    TTF_Init();
+    TTF_Font* font = TTF_OpenFont("Arial.ttf", 28);
+    SDL_Color text_color = { 255, 255, 255 };
+
+
+    std::vector<SDL_Texture*> numeros_texturas(37, nullptr);
+
+    // Definir botones
+    std::vector<SDL_Rect> botones(38);
+    for (int i = 0; i < 36; ++i) {
+        botones[i].x = 100 + i % 12 * 60;
+        botones[i].y = 50 + i / 12 * 60;
+        botones[i].w = 50;
+        botones[i].h = 50;
+
+        // Renderizar número encima del botón
+        SDL_Surface* numero_surface = TTF_RenderText_Solid(font, std::to_string(i + 1).c_str(), text_color);
+        numeros_texturas[i] = SDL_CreateTextureFromSurface(renderer, numero_surface);
+        SDL_FreeSurface(numero_surface);
+    }
+
+   
+    // Agregar botón adicional "0"
+    botones[36].x = 40;    // posición x
+    botones[36].y = 50;  // posición y
+    botones[36].w = 50;   // ancho
+    botones[36].h = 170;   // alto\
+    // Renderizar número encima del botón "0"
+    SDL_Surface* numero_surface = TTF_RenderText_Solid(font, "0", text_color);
+    numeros_texturas[36] = SDL_CreateTextureFromSurface(renderer, numero_surface);
+    SDL_FreeSurface(numero_surface);
+   
+
+    bool running = true;
+    while (running) {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            switch (event.type) {
+            case SDL_QUIT:
+                running = false;
+                break;
+            case SDL_MOUSEBUTTONDOWN:
+                int x = event.button.x;
+                int y = event.button.y;
+                SDL_Point click_point = { x, y };
+                for (int i = 0; i < 37; ++i) {
+                    if (SDL_PointInRect(&click_point, &botones[i])) {
+                        std::cout << "Se hizo clic en el botón " << i+1 << std::endl;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+
+        /* Dibujar botones
+        SDL_SetRenderDrawColor(renderer, 0, 155, 0, 255);
+        SDL_RenderClear(renderer);
+        for (int i = 0; i < 37; ++i) {
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            SDL_RenderFillRect(renderer, &botones[i]);
+        }
+        SDL_RenderPresent(renderer);
+        */
+
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Establecer el color de fondo
+        SDL_RenderClear(renderer); // Limpiar la ventana
+
+        // Dibujar los botones
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Establecer el color de los botones
+        for (int i = 0; i < 37; ++i) {
+            SDL_RenderFillRect(renderer, &botones[i]); // Dibujar el botón
+        }
+
+        // Dibujar los números encima de los botones
+        SDL_Rect numero_rect;
+        for (int i = 0; i < 37; ++i) {
+            SDL_QueryTexture(numeros_texturas[i], NULL, NULL, &numero_rect.w, &numero_rect.h); // Obtener el ancho y alto de la textura del número
+            numero_rect.x = botones[i].x + (botones[i].w - numero_rect.w) / 2; // Centrar el número horizontalmente en el botón
+            numero_rect.y = botones[i].y + (botones[i].h - numero_rect.h) / 2; // Centrar el número verticalmente en el botón
+            SDL_RenderCopy(renderer, numeros_texturas[i], NULL, &numero_rect); // Dibujar el número encima del botón
+        }
+
+        SDL_RenderPresent(renderer); // Mostrar la ventana
+    }
+   
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+
+    return 0;
+}
