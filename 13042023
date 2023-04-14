@@ -14,17 +14,22 @@ int main(int argc, char* argv[]) {
 
     SDL_Window* window = SDL_CreateWindow("Ruleta",
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-        640, 480, SDL_WINDOW_SHOWN);
+        1400, 1000, SDL_WINDOW_SHOWN);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
 
     // Definir botones
-    std::vector<SDL_Rect> botones(36);
+    std::vector<SDL_Rect> botones(38);
     for (int i = 0; i < 36; ++i) {
-        botones[i].x = 50 + i % 3 * 100;
-        botones[i].y = 50 + i / 3 * 100;
+        botones[i].x = 100 + i % 12 * 60;
+        botones[i].y = 50 + i / 12 * 60;
         botones[i].w = 50;
         botones[i].h = 50;
     }
+    // Agregar botón adicional "0"
+    botones[36].x = 40;    // posición x
+    botones[36].y = 50;  // posición y
+    botones[36].w = 50;   // ancho
+    botones[36].h = 170;   // alto\
 
 
     bool running = true;
@@ -39,9 +44,9 @@ int main(int argc, char* argv[]) {
                 int x = event.button.x;
                 int y = event.button.y;
                 SDL_Point click_point = { x, y };
-                for (int i = 0; i < 36; ++i) {
+                for (int i = 0; i < 37; ++i) {
                     if (SDL_PointInRect(&click_point, &botones[i])) {
-                        std::cout << "Se hizo clic en el botón " << i << std::endl;
+                        std::cout << "Se hizo clic en el botón " << i+1 << std::endl;
                         break;
                     }
                 }
@@ -50,9 +55,9 @@ int main(int argc, char* argv[]) {
         }
 
         // Dibujar botones
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_SetRenderDrawColor(renderer, 0, 155, 0, 255);
         SDL_RenderClear(renderer);
-        for (int i = 0; i < 36; ++i) {
+        for (int i = 0; i < 37; ++i) {
             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
             SDL_RenderFillRect(renderer, &botones[i]);
         }
