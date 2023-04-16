@@ -1,0 +1,173 @@
+#include <stdio.h>
+#include <SDL.h>
+#include <vector>
+#include <iostream>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
+#include <conio.h>
+#include <SDL_ttf.h>
+#include <string>       // para utilizar to_string()
+#include <SDL_image.h>
+#include <random>
+#include <windows.h>
+#include "main.h"
+#include <set>
+
+
+
+int main(int argc, char* argv[]) {
+    SDL_Init(SDL_INIT_VIDEO);
+
+    SDL_Window* window = SDL_CreateWindow("Ruleta",
+        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+        1400, 1000, SDL_WINDOW_SHOWN);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
+
+    // Cargar fuente
+    TTF_Init();
+    TTF_Font* font = TTF_OpenFont("C:/Windows/Fonts/ARIAL.ttf", 29);
+    SDL_Color text_color = { 255, 255, 255 };
+
+
+
+   
+
+    // DEFINIR BOTONES
+    
+    //Plenos
+    std::vector<SDL_Rect> botones(38);
+    for (int i = 0; i < 36; ++i) {
+        botones[i].x = 100 + (i / 3) * 60;
+        botones[i].y = 50 + (2 - i % 3) * 60;
+        botones[i].w = 50;
+        botones[i].h = 50;
+    }
+    // Agregar botón adicional "0"
+    botones[36].x = 40;    // posición x
+    botones[36].y = 50;  // posición y
+    botones[36].w = 50;   // ancho
+    botones[36].h = 170;   // alto\
+    
+    //Docenas
+    SDL_Rect botonDocena1 = { 100, 225, 230, 50 };
+    SDL_Rect botonDocena2 = { 340, 225, 230, 50 };
+    SDL_Rect botonDocena3 = { 580, 225, 230, 50 };       
+
+    
+     
+    //TITULO
+    
+    // Renderizar texto con la fuente cargada TITULO
+    SDL_Surface* surface = TTF_RenderText_Solid(font, "Ruleta Mateo", text_color);
+    if (surface == NULL) {
+        // Error al renderizar el texto
+        std::cerr << "Error al renderizar el texto: " << TTF_GetError() << std::endl;
+        return 1;
+    }
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    if (texture == NULL) {
+        // Error al crear la textura
+        std::cerr << "Error al crear la textura: " << SDL_GetError() << std::endl;
+        return 1;
+    }
+    // Obtener el ancho y alto de la textura
+    int texture_width, texture_height;
+    SDL_QueryTexture(texture, NULL, NULL, &texture_width, &texture_height);
+
+    // Definir la posición donde se mostrará el texto
+    int x = 600;   // posición x
+    int y = 0;  // posición y
+    SDL_Rect text_rect = { x, y, texture_width, texture_height };
+
+    
+    
+    //BUCLE PRINCIPAL
+    bool running = true;
+    while (running) {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            switch (event.type) {
+            case SDL_QUIT:
+                running = false;
+                break;
+            case SDL_MOUSEBUTTONDOWN:
+                int x = event.button.x;
+                int y = event.button.y;
+                SDL_Point click_point = { x, y };
+                for (int i = 0; i < 37; ++i) {
+                    if (SDL_PointInRect(&click_point, &botones[i])) {
+                        std::cout << "Se hizo clic en el botón " << i + 1 << std::endl;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+
+        if (font == NULL) {
+            // Error al cargar la fuente
+            std::cerr << "Error al cargar la fuente: " << TTF_GetError() << std::endl;
+            return 1;
+        }
+
+        // DIBUJAR
+        SDL_SetRenderDrawColor(renderer, 0, 80, 10, 255);// COLOR FONDO
+        SDL_RenderClear(renderer);
+        // COLOR BOTONES
+        //Pleno
+        for (int i = 0; i < 37; ++i) {
+            std::set<int> exclude = { 1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36 };
+            if (exclude.count(i + 1) == 0)
+            {SDL_SetRenderDrawColor(renderer, 1, 1, 1, 255);
+            SDL_RenderFillRect(renderer, &botones[i]);
+            } 
+            else
+            {
+                SDL_SetRenderDrawColor(renderer, 255, 1, 1, 255);
+                SDL_RenderFillRect(renderer, &botones[i]);
+        }
+        
+        
+        
+
+
+            // Dibujar botones de docenas
+             SDL_SetRenderDrawColor(renderer, 0, 15, 255, 255);
+             SDL_RenderDrawRect(renderer, &botonDocena1);
+             SDL_RenderDrawRect(renderer, &botonDocena2);
+             SDL_RenderDrawRect(renderer, &botonDocena3);
+
+
+            // Dibujar el número correspondiente
+            std::string text;
+            if (i == 36) {
+                text = "0";
+            }
+            else {
+                text = std::to_string(i + 1);
+            }
+            SDL_Surface* textSurface = TTF_RenderText_Solid(font, text.c_str(), text_color);
+            SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+            SDL_Rect textRect = { botones[i].x + (botones[i].w - textSurface->w) / 2, botones[i].y , textSurface->w, textSurface->h };
+            SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+
+            SDL_FreeSurface(textSurface);
+            SDL_DestroyTexture(textTexture);
+        }
+
+            // Renderizar la textura del texto
+            SDL_RenderCopy(renderer, texture, NULL, &text_rect);
+
+            // Presentar el renderizador
+            SDL_RenderPresent(renderer);
+    }
+
+
+    
+
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    TTF_Quit();
+    return 0;
+}
