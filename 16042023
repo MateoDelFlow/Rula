@@ -32,8 +32,8 @@ int main(int argc, char* argv[]) {
     // Definir botones
     std::vector<SDL_Rect> botones(38);
     for (int i = 0; i < 36; ++i) {
-        botones[i].x = 100 + i % 12 * 60;
-        botones[i].y = 50 + i / 12 * 60;
+        botones[i].x = 100 + (i / 3) * 60;
+        botones[i].y = 50 + (2 - i % 3) * 60;
         botones[i].w = 50;
         botones[i].h = 50;
     }
@@ -45,7 +45,27 @@ int main(int argc, char* argv[]) {
     botones[36].w = 50;   // ancho
     botones[36].h = 170;   // alto\
      
+    // Renderizar texto con la fuente cargada
+    SDL_Surface* surface = TTF_RenderText_Solid(font, "CICLOVIA", text_color);
+    if (surface == NULL) {
+        // Error al renderizar el texto
+        std::cerr << "Error al renderizar el texto: " << TTF_GetError() << std::endl;
+        return 1;
+    }
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    if (texture == NULL) {
+        // Error al crear la textura
+        std::cerr << "Error al crear la textura: " << SDL_GetError() << std::endl;
+        return 1;
+    }
+    // Obtener el ancho y alto de la textura
+    int texture_width, texture_height;
+    SDL_QueryTexture(texture, NULL, NULL, &texture_width, &texture_height);
 
+    // Definir la posición donde se mostrará el texto
+    int x = 700;   // posición x
+    int y = 500;  // posición y
+    SDL_Rect text_rect = { x, y, texture_width, texture_height };
 
     bool running = true;
     while (running) {
@@ -75,34 +95,6 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        
-        
-       
-        // Renderizar texto con la fuente cargada
-        SDL_Surface* surface = TTF_RenderText_Solid(font, "CICLOVIA", text_color);
-        if (surface == NULL) {
-            // Error al renderizar el texto
-            std::cerr << "Error al renderizar el texto: " << TTF_GetError() << std::endl;
-            return 1;
-        }
-        SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-        if (texture == NULL) {
-            // Error al crear la textura
-            std::cerr << "Error al crear la textura: " << SDL_GetError() << std::endl;
-            return 1;
-        }
-        // Obtener el ancho y alto de la textura
-        int texture_width, texture_height;
-        SDL_QueryTexture(texture, NULL, NULL, &texture_width, &texture_height);
-
-        // Definir la posición donde se mostrará el texto
-        int x = 700;   // posición x
-        int y = 500;  // posición y
-
-        // Copiar la textura en la ventana
-        SDL_Rect text_rect = { x, y, texture_width, texture_height };
-        SDL_RenderCopy(renderer, texture, NULL, &text_rect);
-
         // Dibujar botones
         SDL_SetRenderDrawColor(renderer, 0, 10, 10, 255);// COLOR FONDO
         SDL_RenderClear(renderer);
@@ -111,13 +103,37 @@ int main(int argc, char* argv[]) {
             SDL_RenderFillRect(renderer, &botones[i]);
         }
 
+        for (int i = 0; i < 37; ++i) {
+    SDL_SetRenderDrawColor(renderer, 255, 225, 115, 255);// COLOR BOTONES
+    SDL_RenderFillRect(renderer, &botones[i]);
 
+    // Dibujar el número correspondiente
+    std::string text;
+    if (i == 36) {
+        text = "0";
+    }
+    else {
+        text = std::to_string(i + 1);
+    }
+    SDL_Surface* textSurface = TTF_RenderText_Solid(font, text.c_str(), text_color);
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    SDL_Rect textRect = { botones[i].x + (botones[i].w - textSurface->w) / 2, botones[i].y + 10, textSurface->w, textSurface->h };
+    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
 
+    SDL_FreeSurface(textSurface);
+    SDL_DestroyTexture(textTexture);
+
+}
+
+        // Renderizar la textura del texto
+        SDL_RenderCopy(renderer, texture, NULL, &text_rect);
 
         // Presentar el renderizador
         SDL_RenderPresent(renderer);
-
     }
+
+
+    
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
