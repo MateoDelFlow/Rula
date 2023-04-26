@@ -1,0 +1,51 @@
+// Definir los tipos de apuestas
+enum BetType {
+    RED, BLACK, ODD, EVEN, HIGH, LOW, DOZEN1, DOZEN2, DOZEN3, COLUMN1, COLUMN2, COLUMN3, NUMBER
+};
+
+// Definir los pagos para cada tipo de apuesta
+const std::map<BetType, float> PAYOUTS = {
+    {RED, 1.0f},
+    {BLACK, 1.0f},
+    {ODD, 1.0f},
+    {EVEN, 1.0f},
+    {HIGH, 1.0f},
+    {LOW, 1.0f},
+    {DOZEN1, 2.0f},
+    {DOZEN2, 2.0f},
+    {DOZEN3, 2.0f},
+    {COLUMN1, 2.0f},
+    {COLUMN2, 2.0f},
+    {COLUMN3, 2.0f},
+    {NUMBER, 36.0f}
+};
+
+// Definir el saldo del jugador
+float playerBalance = 100.0f;
+
+// Realizar una apuesta
+void placeBet(BetType bet, float amount) {
+    // Restar la cantidad apostada del saldo del jugador
+    playerBalance -= amount;
+
+    // Guardar la apuesta realizada para su posterior verificación
+    // Puedes utilizar una estructura de datos como un vector o una lista para guardar las apuestas
+    // Aquí se utiliza un mapa que asocia cada tipo de apuesta con la cantidad apostada
+    static std::map<BetType, float> bets;
+    bets[bet] += amount;
+}
+
+// Verificar las apuestas ganadoras
+void checkBets(int winningNumber) {
+    // Calcular las apuestas ganadoras y la cantidad total ganada
+    float totalWon = 0.0f;
+    for (auto it = bets.begin(); it != bets.end(); it++) {
+        BetType bet = it->first;
+        float amount = it->second;
+        float payout = PAYOUTS.at(bet);
+        bool won = false;
+
+        // Verificar si la apuesta es ganadora en función del número ganador
+        switch (bet) {
+            case RED:
+                won = (winningNumber >= 1 && winningNumber <= 10
